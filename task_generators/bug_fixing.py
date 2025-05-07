@@ -2689,3 +2689,826 @@ def calculate_average(numbers):
             "medium": """
 def find_most_frequent(items):
     \"\"\"Find the most frequently occurring item in
+# recursive_swe_bench/task_generators/bug_fixing.py (template generation)
+
+def find_most_frequent(items):
+    """Find the most frequently occurring item in a list."""
+    if not items:
+        return None
+    
+    counts = {}
+    for item in items:
+        if item in counts:
+            counts[item] += 1
+        else:
+            counts[item] = 1
+    
+    max_count = 0
+    max_item = None
+    for item, count in counts.items():
+        if count > max_count:
+            max_count = count
+            max_item = item
+    
+    return max_item
+
+def binary_search(sorted_list, target):
+    """Perform binary search on a sorted list."""
+    left = 0
+    right = len(sorted_list) - 1
+    
+    while left <= right:
+        mid = (left + right) // 2
+        if sorted_list[mid] == target:
+            return mid
+        elif sorted_list[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+    
+    return -1  # Target not found
+""",
+            "hard": """
+def merge_sort(arr):
+    """Sort an array using the merge sort algorithm."""
+    if len(arr) <= 1:
+        return arr
+    
+    # Split the array into two halves
+    mid = len(arr) // 2
+    left_half = arr[:mid]
+    right_half = arr[mid:]
+    
+    # Recursively sort both halves
+    left_half = merge_sort(left_half)
+    right_half = merge_sort(right_half)
+    
+    # Merge the sorted halves
+    return merge(left_half, right_half)
+
+def merge(left, right):
+    """Merge two sorted arrays."""
+    result = []
+    i = j = 0
+    
+    # Compare elements from both arrays and add the smaller one to the result
+    while i < len(left) and j < len(right):
+        if left[i] <= right[j]:
+            result.append(left[i])
+            i += 1
+        else:
+            result.append(right[j])
+            j += 1
+    
+    # Add any remaining elements
+    result.extend(left[i:])
+    result.extend(right[j:])
+    
+    return result
+
+def quicksort(arr):
+    """Sort an array using the quicksort algorithm."""
+    if len(arr) <= 1:
+        return arr
+    
+    # Choose the pivot (using the first element for simplicity)
+    pivot = arr[0]
+    
+    # Partition the array
+    less = [x for x in arr[1:] if x <= pivot]
+    greater = [x for x in arr[1:] if x > pivot]
+    
+    # Recursively sort the partitions and combine
+    return quicksort(less) + [pivot] + quicksort(greater)
+""",
+            "expert": """
+class Node:
+    """Node in a binary tree."""
+    def __init__(self, value):
+        self.value = value
+        self.left = None
+        self.right = None
+
+def build_binary_tree(values):
+    """Build a binary tree from a list of values."""
+    if not values:
+        return None
+    
+    root = Node(values[0])
+    queue = [root]
+    i = 1
+    
+    while queue and i < len(values):
+        node = queue.pop(0)
+        
+        # Add left child
+        if i < len(values) and values[i] is not None:
+            node.left = Node(values[i])
+            queue.append(node.left)
+        i += 1
+        
+        # Add right child
+        if i < len(values) and values[i] is not None:
+            node.right = Node(values[i])
+            queue.append(node.right)
+        i += 1
+    
+    return root
+
+def is_balanced(root):
+    """Check if a binary tree is balanced."""
+    def height(node):
+        if not node:
+            return 0
+        return max(height(node.left), height(node.right)) + 1
+    
+    def is_balanced_helper(node):
+        if not node:
+            return True
+        
+        left_height = height(node.left)
+        right_height = height(node.right)
+        
+        if abs(left_height - right_height) > 1:
+            return False
+        
+        return is_balanced_helper(node.left) and is_balanced_helper(node.right)
+    
+    return is_balanced_helper(root)
+
+def find_lca(root, p, q):
+    """Find the lowest common ancestor of two nodes in a binary tree."""
+    if not root:
+        return None
+    
+    if root.value == p or root.value == q:
+        return root
+    
+    left_lca = find_lca(root.left, p, q)
+    right_lca = find_lca(root.right, p, q)
+    
+    if left_lca and right_lca:
+        return root
+    
+    return left_lca if left_lca else right_lca
+"""
+        }
+        
+        # Choose a template based on difficulty
+        if difficulty in templates:
+            return templates[difficulty]
+        else:
+            return templates["medium"]  # Default to medium if difficulty not found
+    
+    def _generate_template_tests(self, code: str) -> List[Dict[str, Any]]:
+        """
+        Generate template tests based on the code.
+        
+        Args:
+            code: The template code
+            
+        Returns:
+            List of test dictionaries
+        """
+        # Extract function names from the code
+        function_names = re.findall(r'def\s+(\w+)', code)
+        
+        # Generate tests for each function
+        tests = []
+        for func_name in function_names:
+            test_content = self._generate_test_for_function(func_name)
+            if test_content:
+                tests.append({
+                    "name": f"test_{func_name}",
+                    "content": test_content,
+                    "description": f"Test for {func_name} function"
+                })
+        
+        return tests
+    
+    def _generate_test_for_function(self, func_name: str) -> str:
+        """
+        Generate a test for a specific function.
+        
+        Args:
+            func_name: The name of the function to test
+            
+        Returns:
+            Test content
+        """
+        # Check if we have a template for this function
+        if func_name in self.test_templates:
+            return self.test_templates[func_name]
+        
+        # Generate a basic test based on the function name
+        if "sum" in func_name.lower():
+            return """
+import unittest
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import calculate_sum
+
+class TestCalculateSum(unittest.TestCase):
+    def test_calculate_sum(self):
+        self.assertEqual(calculate_sum([1, 2, 3, 4, 5]), 15)
+        self.assertEqual(calculate_sum([]), 0)
+        self.assertEqual(calculate_sum([-1, -2, -3]), -6)
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+        elif "average" in func_name.lower():
+            return """
+import unittest
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import calculate_average
+
+class TestCalculateAverage(unittest.TestCase):
+    def test_calculate_average(self):
+        self.assertEqual(calculate_average([1, 2, 3, 4, 5]), 3)
+        self.assertEqual(calculate_average([]), 0)
+        self.assertEqual(calculate_average([10]), 10)
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+        elif "frequent" in func_name.lower():
+            return """
+import unittest
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import find_most_frequent
+
+class TestFindMostFrequent(unittest.TestCase):
+    def test_find_most_frequent(self):
+        self.assertEqual(find_most_frequent([1, 2, 2, 3, 3, 3, 4]), 3)
+        self.assertEqual(find_most_frequent(['a', 'b', 'a', 'c', 'a']), 'a')
+        self.assertIsNone(find_most_frequent([]))
+        self.assertEqual(find_most_frequent([5]), 5)
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+        elif "search" in func_name.lower():
+            return """
+import unittest
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import binary_search
+
+class TestBinarySearch(unittest.TestCase):
+    def test_binary_search(self):
+        self.assertEqual(binary_search([1, 2, 3, 4, 5], 3), 2)
+        self.assertEqual(binary_search([1, 2, 3, 4, 5], 1), 0)
+        self.assertEqual(binary_search([1, 2, 3, 4, 5], 5), 4)
+        self.assertEqual(binary_search([1, 2, 3, 4, 5], 6), -1)
+        self.assertEqual(binary_search([], 5), -1)
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+        elif "sort" in func_name.lower():
+            return """
+import unittest
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import {0}
+
+class Test{1}(unittest.TestCase):
+    def test_sorting(self):
+        self.assertEqual({0}([]), [])
+        self.assertEqual({0}([1]), [1])
+        self.assertEqual({0}([3, 1, 4, 1, 5, 9, 2, 6, 5]), [1, 1, 2, 3, 4, 5, 5, 6, 9])
+        self.assertEqual({0}([9, 8, 7, 6, 5, 4, 3, 2, 1]), [1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual({0}([1, 1, 1, 1]), [1, 1, 1, 1])
+        
+if __name__ == '__main__':
+    unittest.main()
+""".format(func_name, func_name.title())
+        elif "balanced" in func_name.lower():
+            return """
+import unittest
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import Node, is_balanced
+
+class TestIsBalanced(unittest.TestCase):
+    def test_is_balanced(self):
+        # Create a balanced tree
+        #      1
+        #    /   \\
+        #   2     3
+        #  / \\   / \\
+        # 4   5 6   7
+        root = Node(1)
+        root.left = Node(2)
+        root.right = Node(3)
+        root.left.left = Node(4)
+        root.left.right = Node(5)
+        root.right.left = Node(6)
+        root.right.right = Node(7)
+        self.assertTrue(is_balanced(root))
+        
+        # Create an unbalanced tree
+        #      1
+        #    /   \\
+        #   2     3
+        #  / \\
+        # 4   5
+        #/
+        #6
+        root = Node(1)
+        root.left = Node(2)
+        root.right = Node(3)
+        root.left.left = Node(4)
+        root.left.right = Node(5)
+        root.left.left.left = Node(6)
+        self.assertFalse(is_balanced(root))
+        
+        # Empty tree is balanced
+        self.assertTrue(is_balanced(None))
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+        elif "lca" in func_name.lower():
+            return """
+import unittest
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import Node, find_lca
+
+class TestFindLCA(unittest.TestCase):
+    def test_find_lca(self):
+        # Create a tree
+        #      1
+        #    /   \\
+        #   2     3
+        #  / \\   / \\
+        # 4   5 6   7
+        root = Node(1)
+        root.left = Node(2)
+        root.right = Node(3)
+        root.left.left = Node(4)
+        root.left.right = Node(5)
+        root.right.left = Node(6)
+        root.right.right = Node(7)
+        
+        # Test cases
+        self.assertEqual(find_lca(root, 4, 5).value, 2)  # LCA of 4 and 5 is 2
+        self.assertEqual(find_lca(root, 4, 6).value, 1)  # LCA of 4 and 6 is 1
+        self.assertEqual(find_lca(root, 3, 7).value, 3)  # LCA of 3 and 7 is 3
+        self.assertEqual(find_lca(root, 2, 7).value, 1)  # LCA of 2 and 7 is 1
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+        elif "tree" in func_name.lower():
+            return """
+import unittest
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import Node, build_binary_tree
+
+class TestBuildBinaryTree(unittest.TestCase):
+    def test_build_binary_tree(self):
+        # Test empty list
+        self.assertIsNone(build_binary_tree([]))
+        
+        # Test single node
+        root = build_binary_tree([1])
+        self.assertEqual(root.value, 1)
+        self.assertIsNone(root.left)
+        self.assertIsNone(root.right)
+        
+        # Test complete tree
+        #      1
+        #    /   \\
+        #   2     3
+        #  / \\   / \\
+        # 4   5 6   7
+        values = [1, 2, 3, 4, 5, 6, 7]
+        root = build_binary_tree(values)
+        self.assertEqual(root.value, 1)
+        self.assertEqual(root.left.value, 2)
+        self.assertEqual(root.right.value, 3)
+        self.assertEqual(root.left.left.value, 4)
+        self.assertEqual(root.left.right.value, 5)
+        self.assertEqual(root.right.left.value, 6)
+        self.assertEqual(root.right.right.value, 7)
+        
+        # Test tree with None values
+        #      1
+        #    /   \\
+        #   2     3
+        #  /     / 
+        # 4     6   
+        values = [1, 2, 3, 4, None, 6, None]
+        root = build_binary_tree(values)
+        self.assertEqual(root.value, 1)
+        self.assertEqual(root.left.value, 2)
+        self.assertEqual(root.right.value, 3)
+        self.assertEqual(root.left.left.value, 4)
+        self.assertIsNone(root.left.right)
+        self.assertEqual(root.right.left.value, 6)
+        self.assertIsNone(root.right.right)
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+        else:
+            # Generic test template
+            return """
+import unittest
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import {0}
+
+class Test{1}(unittest.TestCase):
+    def test_{0}(self):
+        # TODO: Add specific test cases for {0}
+        # This is a placeholder test
+        self.assertTrue(True)
+        
+if __name__ == '__main__':
+    unittest.main()
+""".format(func_name, func_name.title())
+    
+    def _load_test_templates(self) -> Dict[str, str]:
+        """
+        Load test templates for common functions.
+        
+        Returns:
+            Dictionary of test templates
+        """
+        # In a real implementation, these would be loaded from files
+        return {
+            "calculate_sum": """
+import unittest
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import calculate_sum
+
+class TestCalculateSum(unittest.TestCase):
+    def test_calculate_sum(self):
+        self.assertEqual(calculate_sum([1, 2, 3, 4, 5]), 15)
+        self.assertEqual(calculate_sum([]), 0)
+        self.assertEqual(calculate_sum([-1, -2, -3]), -6)
+        
+if __name__ == '__main__':
+    unittest.main()
+""",
+            "calculate_average": """
+import unittest
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import calculate_average
+
+class TestCalculateAverage(unittest.TestCase):
+    def test_calculate_average(self):
+        self.assertEqual(calculate_average([1, 2, 3, 4, 5]), 3)
+        self.assertEqual(calculate_average([]), 0)
+        self.assertEqual(calculate_average([10]), 10)
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+        }
+    
+    def _insert_bug(self, problem_state: ProblemState, bug_category: str) -> None:
+        """
+        Insert a bug of the specified category into the problem state.
+        
+        Args:
+            problem_state: The problem state to modify
+            bug_category: The category of bug to insert
+        """
+        if "code" not in problem_state.code_context:
+            return
+        
+        # Parse the code to find potential bug insertion points
+        code = problem_state.code_context["code"]
+        try:
+            parsed_code = ast.parse(code)
+        except SyntaxError:
+            # If the code already has syntax errors, don't add more bugs
+            return
+        
+        # Insert different types of bugs based on the category
+        if bug_category == BugCategory.SYNTAX:
+            self._insert_syntax_bug(problem_state)
+        elif bug_category == BugCategory.LOGICAL:
+            self._insert_logical_bug(problem_state)
+        elif bug_category == BugCategory.PERFORMANCE:
+            self._insert_performance_bug(problem_state)
+        elif bug_category == BugCategory.EDGE_CASE:
+            self._insert_edge_case_bug(problem_state)
+        else:
+            # Default to logical bug
+            self._insert_logical_bug(problem_state)
+        
+        # Update bug count and categories
+        if "bug_count" not in problem_state.code_context:
+            problem_state.code_context["bug_count"] = 0
+        problem_state.code_context["bug_count"] += 1
+        
+        if "bug_categories" not in problem_state.code_context:
+            problem_state.code_context["bug_categories"] = []
+        if bug_category not in problem_state.code_context["bug_categories"]:
+            problem_state.code_context["bug_categories"].append(bug_category)
+    
+    def _insert_syntax_bug(self, problem_state: ProblemState) -> None:
+        """
+        Insert a syntax bug into the problem state.
+        
+        Args:
+            problem_state: The problem state to modify
+        """
+        code = problem_state.code_context["code"]
+        lines = code.split('\n')
+        if not lines:
+            return
+        
+        # Choose a non-empty line to modify
+        idx = random.randint(0, len(lines) - 1)
+        line = lines[idx]
+        
+        # Skip empty lines or comment lines
+        attempts = 0
+        while (not line.strip() or line.strip().startswith('#')) and attempts < 10:
+            idx = random.randint(0, len(lines) - 1)
+            line = lines[idx]
+            attempts += 1
+        
+        if attempts >= 10:
+            # Couldn't find a suitable line, use the first non-empty line
+            for i, line in enumerate(lines):
+                if line.strip() and not line.strip().startswith('#'):
+                    idx = i
+                    break
+            else:
+                return  # No suitable line found
+        
+        # Choose a modification type
+        mod_type = random.choice([
+            "remove_character",
+            "add_character",
+            "swap_characters",
+            "change_indent"
+        ])
+        
+        if mod_type == "remove_character" and line:
+            char_idx = random.randint(0, len(line) - 1)
+            lines[idx] = line[:char_idx] + line[char_idx+1:]
+        
+        elif mod_type == "add_character":
+            char_idx = random.randint(0, len(line))
+            char = random.choice(["(", ")", "{", "}", "[", "]", ":", ";", ",", "."])
+            lines[idx] = line[:char_idx] + char + line[char_idx:]
+        
+        elif mod_type == "swap_characters" and len(line) >= 2:
+            char_idx = random.randint(0, len(line) - 2)
+            lines[idx] = (line[:char_idx] + line[char_idx+1] + 
+                         line[char_idx] + line[char_idx+2:])
+        
+        elif mod_type == "change_indent":
+            # Either add or remove indentation
+            if line.startswith("    "):
+                lines[idx] = line[2:]  # Remove some indent
+            else:
+                lines[idx] = "  " + line  # Add inconsistent indent
+        
+        # Update the code
+        problem_state.code_context["code"] = '\n'.join(lines)
+        
+        # Add information about the bug
+        if "bugs" not in problem_state.code_context:
+            problem_state.code_context["bugs"] = []
+        
+        problem_state.code_context["bugs"].append({
+            "type": BugCategory.SYNTAX,
+            "line": idx + 1,
+            "description": f"Syntax error introduced in line {idx + 1}"
+        })
+    
+    def _insert_logical_bug(self, problem_state: ProblemState) -> None:
+        """
+        Insert a logical bug into the problem state.
+        
+        Args:
+            problem_state: The problem state to modify
+        """
+        code = problem_state.code_context["code"]
+        lines = code.split('\n')
+        if not lines:
+            return
+        
+        # Find all if statements and loops
+        if_statements = []
+        for i, line in enumerate(lines):
+            if re.search(r'\bif\b|\bwhile\b|\bfor\b', line):
+                if_statements.append((i, line))
+        
+        # Choose a modification type
+        mod_type = random.choice([
+            "change_comparison",
+            "invert_condition",
+            "off_by_one",
+            "change_operator",
+            "reverse_logic"
+        ])
+        
+        if if_statements:
+            # Choose an if statement to modify
+            idx, line = random.choice(if_statements)
+            
+            if mod_type == "change_comparison":
+                # Change comparison operators
+                comparisons = {"==": "!=", "!=": "==", ">": "<", "<": ">", ">=": "<=", "<=": ">="}
+                for op, new_op in comparisons.items():
+                    if op in line:
+                        lines[idx] = line.replace(op, new_op, 1)
+                        break
+            
+            elif mod_type == "invert_condition":
+                # Add or remove a "not" to invert the condition
+                if "not" in line:
+                    lines[idx] = line.replace("not ", "", 1)
+                else:
+                    match = re.search(r'(if|while)\s+([^:]+):', line)
+                    if match:
+                        condition = match.group(2)
+                        lines[idx] = line.replace(condition, f"not ({condition})", 1)
+            
+            elif mod_type == "off_by_one":
+                # Introduce an off-by-one error
+                for op in ["+", "-"]:
+                    if op in line:
+                        # If there's a number after the operator, change it
+                        match = re.search(f'\\{op}\\s*(\\d+)', line)
+                        if match:
+                            num = int(match.group(1))
+                            new_num = num + 1 if op == "+" else max(0, num - 1)
+                            lines[idx] = line.replace(f"{op} {num}", f"{op} {new_num}", 1)
+                            break
+            
+            elif mod_type == "change_operator":
+                # Change arithmetic or logical operators
+                operators = {"+": "-", "-": "+", "*": "/", "/": "*", "and": "or", "or": "and"}
+                for op, new_op in operators.items():
+                    if f" {op} " in line:
+                        lines[idx] = line.replace(f" {op} ", f" {new_op} ", 1)
+                        break
+            
+            elif mod_type == "reverse_logic":
+                # Reverse the logic of a compound condition
+                if " and " in line:
+                    parts = line.split(" and ")
+                    lines[idx] = line.replace(" and ".join(parts), " or ".join(parts), 1)
+                elif " or " in line:
+                    parts = line.split(" or ")
+                    lines[idx] = line.replace(" or ".join(parts), " and ".join(parts), 1)
+        
+        else:
+            # If no if statements found, introduce a different kind of logical error
+            # Find variable assignments
+            assignments = []
+            for i, line in enumerate(lines):
+                if "=" in line and "==" not in line and "!=" not in line:
+                    assignments.append((i, line))
+            
+            if assignments:
+                # Choose an assignment to modify
+                idx, line = random.choice(assignments)
+                
+                # Modify the assignment
+                if "+" in line:
+                    lines[idx] = line.replace("+", "-", 1)
+                elif "-" in line:
+                    lines[idx] = line.replace("-", "+", 1)
+                elif "*" in line:
+                    lines[idx] = line.replace("*", "/", 1)
+                elif "/" in line:
+                    lines[idx] = line.replace("/", "*", 1)
+                else:
+                    # If no arithmetic operator, change the value
+                    match = re.search(r'=\s*(\d+)', line)
+                    if match:
+                        num = int(match.group(1))
+                        new_num = num + random.choice([-1, 1]) * random.randint(1, 3)
+                        lines[idx] = line.replace(f"= {num}", f"= {new_num}", 1)
+        
+        # Update the code
+        problem_state.code_context["code"] = '\n'.join(lines)
+        
+        # Add information about the bug
+        if "bugs" not in problem_state.code_context:
+            problem_state.code_context["bugs"] = []
+        
+        problem_state.code_context["bugs"].append({
+            "type": BugCategory.LOGICAL,
+            "line": idx + 1,
+            "description": f"Logical error introduced in line {idx + 1}"
+        })
+    
+    def _insert_performance_bug(self, problem_state: ProblemState) -> None:
+        """
+        Insert a performance bug into the problem state.
+        
+        Args:
+            problem_state: The problem state to modify
+        """
+        code = problem_state.code_context["code"]
+        lines = code.split('\n')
+        if not lines:
+            return
+        
+        # Find functions in the code
+        functions = []
+        current_func = None
+        func_start = None
+        for i, line in enumerate(lines):
+            if line.strip().startswith("def "):
+                if current_func:
+                    functions.append((func_start, i - 1, current_func))
+                current_func = line.strip()[4:].split("(")[0]
+                func_start = i
+            elif i == len(lines) - 1 and current_func:
+                functions.append((func_start, i, current_func))
+        
+        if not functions:
+            return
+        
+        # Choose a function to modify
+        start_idx, end_idx, func_name = random.choice(functions)
+        
+        # Choose a modification type
+        mod_type = random.choice([
+            "add_nested_loop",
+            "inefficient_data_structure",
+            "redundant_computation"
+        ])
+        
+        if mod_type == "add_nested_loop":
+            # Find indentation of the function
+            for i in range(start_idx + 1, end_idx + 1):
+                if lines[i].strip():
+                    indent = len(lines[i]) - len(lines[i].lstrip())
+                    break
+            else:
+                indent = 4
+            
+            # Find a suitable place to add a nested loop
+            for i in range(start_idx + 1, end_idx + 1):
+                if "for " in lines[i] or "while " in lines[i]:
+                    # Add a nested loop after this loop
+                    inner_indent = len(lines[i]) - len(lines[i].lstrip()) + 4
+                    inner_indent_str = ' ' * inner_indent
+                    
+                    # Add an unnecessary nested loop
+                    lines.insert(i + 1, f"{inner_indent_str}for _ in range(100):  # Inefficient nested loop")
+                    lines.insert(i + 2, f"{inner_indent_str}    pass")
+                    
+                    # Update indices
+                    end_idx += 2
+                    break
+            else:
+                # If no loop found, add one at the beginning of the function
+                inner_indent = indent + 4
+                inner_indent_str = ' ' * inner_indent
+                
+                # Find the first non-docstring line
+                for i in range(start_idx + 1, end_idx + 1):
+                    if lines[i].strip() and not (lines[i].strip().startswith('"""') or lines[i].strip().startswith("'''")):
+                        # Add an unnecessary loop
+                        lines.insert(i, f"{' ' * indent}for i in range(100):  # Inefficient loop")
+                        lines.insert(i + 1, f"{inner_indent_str}pass")
+                        
+                        # Update indices
+                        end_idx += 2
+                        break
+        
+        elif mod_type == "ineff
