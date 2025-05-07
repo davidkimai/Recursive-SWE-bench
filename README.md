@@ -1,11 +1,5 @@
 # Recursive-SWE-bench
 
-[![GitHub stars](https://img.shields.io/github/stars/recursive-labs/recursive-swe-bench?style=social)](https://github.com/recursive-labs/recursive-swe-bench)
-[![PyPI version](https://img.shields.io/pypi/v/recursive-swe-bench.svg)](https://pypi.org/project/recursive-swe-bench/)
-[![Documentation Status](https://readthedocs.io/en/latest/?badge=latest)](https://recursive-swe-bench.readthedocs.io/)
-[![Discord](https://img.shields.io/discord/1098746693152301156)](https://discord.gg/recursive-swe-bench)
-[![Twitter Follow](https://img.shields.io/twitter/follow/RecursiveBench)](https://twitter.com/RecursiveBench)
-
 ## Evolution Beyond Linear Benchmarking
 
 Recursive-SWE-bench extends the established [SWE-bench](https://github.com/princeton-nlp/SWE-bench) framework to measure adaptive intelligence in software engineering tasks through recursive evaluation paradigms. While traditional benchmarks measure static, single-pass performance, Recursive-SWE-bench evaluates dynamic problem-solving capabilities across iterative refinement cycles.
