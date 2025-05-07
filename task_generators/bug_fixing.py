@@ -1822,9 +1822,870 @@ if __name__ == '__main__':
 """
         elif edge_case == "boundary values (min/max)":
             return f"""
+# recursive_swe_bench/task_generators/bug_fixing.py (completion)
+
 import unittest
 import sys
 import os
 import sys
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import {function_name}
+
+class BoundaryValueTest(unittest.TestCase):
+    def test_min_max_values(self):
+        # Test with minimum integer
+        min_int = -sys.maxsize - 1
+        result = {function_name}(min_int)
+        self.assertIsNotNone(result, "Function should handle minimum integer")
+        
+        # Test with maximum integer
+        max_int = sys.maxsize
+        result = {function_name}(max_int)
+        self.assertIsNotNone(result, "Function should handle maximum integer")
+        
+        # Test with very large list
+        large_list = list(range(10000))
+        result = {function_name}(large_list)
+        self.assertIsNotNone(result, "Function should handle very large inputs")
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+        elif edge_case == "negative numbers":
+            return f"""
+import unittest
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import {function_name}
+
+class NegativeNumberTest(unittest.TestCase):
+    def test_negative_numbers(self):
+        # Test with negative number
+        result = {function_name}(-1)
+        self.assertIsNotNone(result, "Function should handle negative numbers")
+        
+        # Test with list of negative numbers
+        result = {function_name}([-1, -2, -3])
+        self.assertIsNotNone(result, "Function should handle lists of negative numbers")
+        
+        # Test with mixed positive and negative
+        result = {function_name}([-1, 0, 1])
+        self.assertIsNotNone(result, "Function should handle mixed positive and negative")
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+        else:
+            # Generic edge case test
+            return f"""
+import unittest
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import {function_name}
+
+class EdgeCaseTest(unittest.TestCase):
+    def test_edge_case_{edge_case.replace(' ', '_')}(self):
+        # Test edge case: {edge_case}
+        # This is a placeholder test that needs to be customized for the specific edge case
+        self.assertTrue(True, "Edge case test not implemented")
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+    
+    def _generate_performance_test(self, constraint: str, code_context: Dict[str, Any]) -> str:
+        """
+        Generate a performance test based on a constraint.
+        
+        Args:
+            constraint: The performance constraint
+            code_context: The code context containing information about the problem
+            
+        Returns:
+            A test script for the performance constraint
+        """
+        # Extract function names from the code context
+        function_names = []
+        if "code" in code_context:
+            function_names = re.findall(r'def\s+(\w+)', code_context["code"])
+        
+        if not function_names:
+            return None
+        
+        # Choose a function to test
+        function_name = random.choice(function_names)
+        
+        if "time complexity" in constraint:
+            return f"""
+import unittest
+import sys
+import os
+import time
+import random
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import {function_name}
+
+class PerformanceTest(unittest.TestCase):
+    def test_time_complexity(self):
+        # Test for {constraint}
+        sizes = [100, 1000, 10000]
+        times = []
+        
+        for size in sizes:
+            # Generate input of the given size
+            input_data = [random.randint(0, 1000) for _ in range(size)]
+            
+            # Measure execution time
+            start_time = time.time()
+            {function_name}(input_data)
+            end_time = time.time()
+            
+            times.append(end_time - start_time)
+        
+        # Check if time grows appropriately
+        # For O(n), time should grow linearly with input size
+        # For O(log n), time should grow logarithmically
+        # This is a simplified check and might need adjustment
+        if "log n" in "{constraint}":
+            # For logarithmic time, the ratio of times should decrease
+            ratio1 = times[1] / times[0]
+            ratio2 = times[2] / times[1]
+            self.assertLess(ratio2, ratio1 * 1.5, 
+                           f"Growth rate appears super-logarithmic: {times}")
+        else:  # Assume linear or better
+            # For linear time, the ratio of times should be roughly equal to ratio of sizes
+            ratio1 = times[1] / times[0]
+            size_ratio1 = sizes[1] / sizes[0]
+            
+            ratio2 = times[2] / times[1]
+            size_ratio2 = sizes[2] / sizes[1]
+            
+            self.assertLess(ratio1, size_ratio1 * 1.5, 
+                           f"First growth rate appears super-linear: {times}")
+            self.assertLess(ratio2, size_ratio2 * 1.5, 
+                           f"Second growth rate appears super-linear: {times}")
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+        elif "execution time" in constraint:
+            return f"""
+import unittest
+import sys
+import os
+import time
+import random
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import {function_name}
+
+class PerformanceTest(unittest.TestCase):
+    def test_execution_time(self):
+        # Test for {constraint}
+        # Generate a large input
+        input_data = [random.randint(0, 1000) for _ in range(10000)]
+        
+        # Measure execution time
+        start_time = time.time()
+        {function_name}(input_data)
+        end_time = time.time()
+        
+        execution_time = (end_time - start_time) * 1000  # Convert to ms
+        
+        self.assertLess(execution_time, 100, 
+                       f"Execution time exceeded 100ms: {execution_time:.2f}ms")
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+        elif "memory usage" in constraint:
+            return f"""
+import unittest
+import sys
+import os
+import psutil
+import random
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import {function_name}
+
+class MemoryUsageTest(unittest.TestCase):
+    def test_memory_usage(self):
+        # Test for {constraint}
+        # Note: This is an approximate test and may not be accurate in all environments
+        
+        # Get current process
+        process = psutil.Process(os.getpid())
+        
+        # Measure memory before
+        memory_before = process.memory_info().rss / 1024 / 1024  # MB
+        
+        # Generate a large input
+        input_data = [random.randint(0, 1000) for _ in range(100000)]
+        
+        # Run function
+        {function_name}(input_data)
+        
+        # Measure memory after
+        memory_after = process.memory_info().rss / 1024 / 1024  # MB
+        
+        # Calculate memory usage
+        memory_used = memory_after - memory_before
+        
+        # A crude approximation, adjust as needed
+        self.assertLess(memory_used, 10, 
+                       f"Memory usage seems high: {memory_used:.2f}MB")
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+        else:
+            # Generic performance test
+            return f"""
+import unittest
+import sys
+import os
+import time
+import random
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import {function_name}
+
+class PerformanceTest(unittest.TestCase):
+    def test_performance(self):
+        # Test for {constraint}
+        # This is a placeholder test that needs to be customized for the specific constraint
+        
+        # Generate a large input
+        input_data = [random.randint(0, 1000) for _ in range(10000)]
+        
+        # Measure execution time
+        start_time = time.time()
+        {function_name}(input_data)
+        end_time = time.time()
+        
+        execution_time = end_time - start_time
+        
+        # Just log the time for now
+        print(f"Execution time: {execution_time:.4f} seconds")
+        self.assertTrue(True, "Performance test completed")
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+    
+    def _generate_functionality_test(self, expansion: str, code_context: Dict[str, Any]) -> str:
+        """
+        Generate a test for expanded functionality.
+        
+        Args:
+            expansion: The functionality expansion
+            code_context: The code context containing information about the problem
+            
+        Returns:
+            A test script for the expanded functionality
+        """
+        # Extract function names from the code context
+        function_names = []
+        if "code" in code_context:
+            function_names = re.findall(r'def\s+(\w+)', code_context["code"])
+        
+        if not function_names:
+            return None
+        
+        # Choose a function to test
+        function_name = random.choice(function_names)
+        
+        if "different input types" in expansion:
+            return f"""
+import unittest
+import sys
+import os
+import json
+from collections import namedtuple
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import {function_name}
+
+class InputTypesTest(unittest.TestCase):
+    def test_different_input_types(self):
+        # Test with different types of inputs
+        
+        # Test with list
+        list_input = [1, 2, 3]
+        list_result = {function_name}(list_input)
+        self.assertIsNotNone(list_result, "Function should handle list input")
+        
+        # Test with tuple
+        tuple_input = (1, 2, 3)
+        tuple_result = {function_name}(tuple_input)
+        self.assertIsNotNone(tuple_result, "Function should handle tuple input")
+        
+        # Test with set
+        set_input = {{1, 2, 3}}
+        set_result = {function_name}(set_input)
+        self.assertIsNotNone(set_result, "Function should handle set input")
+        
+        # Test with dictionary
+        dict_input = {{"a": 1, "b": 2, "c": 3}}
+        dict_result = {function_name}(dict_input)
+        self.assertIsNotNone(dict_result, "Function should handle dictionary input")
+        
+        # Test with JSON string
+        json_input = '{{"data": [1, 2, 3]}}'
+        json_result = {function_name}(json_input)
+        self.assertIsNotNone(json_result, "Function should handle JSON string")
+        
+        # Test with custom object
+        Point = namedtuple('Point', ['x', 'y'])
+        obj_input = Point(1, 2)
+        obj_result = {function_name}(obj_input)
+        self.assertIsNotNone(obj_result, "Function should handle custom object")
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+        elif "parameterized behavior" in expansion:
+            return f"""
+import unittest
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import {function_name}
+
+class ParameterizedTest(unittest.TestCase):
+    def test_parameterized_behavior(self):
+        # Test function with different parameters
+        
+        # Base case with default parameters
+        base_input = [1, 2, 3]
+        base_result = {function_name}(base_input)
+        
+        # The function should now accept additional parameters
+        # These are example parameters, adjust based on the specific function
+        
+        # With sorting parameter
+        try:
+            sorted_result = {function_name}(base_input, sort=True)
+            self.assertIsNotNone(sorted_result, "Function should handle sort parameter")
+        except TypeError as e:
+            self.fail(f"Function does not support sort parameter: {{e}}")
+        
+        # With filtering parameter
+        try:
+            filtered_result = {function_name}(base_input, filter_fn=lambda x: x > 1)
+            self.assertIsNotNone(filtered_result, "Function should handle filter_fn parameter")
+        except TypeError as e:
+            self.fail(f"Function does not support filter_fn parameter: {{e}}")
+        
+        # With formatting parameter
+        try:
+            formatted_result = {function_name}(base_input, format="json")
+            self.assertIsNotNone(formatted_result, "Function should handle format parameter")
+        except TypeError as e:
+            self.fail(f"Function does not support format parameter: {{e}}")
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+        elif "additional output formats" in expansion:
+            return f"""
+import unittest
+import sys
+import os
+import json
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import {function_name}
+
+class OutputFormatsTest(unittest.TestCase):
+    def test_output_formats(self):
+        # Test function with different output formats
+        input_data = [1, 2, 3]
+        
+        # Original format
+        original_result = {function_name}(input_data)
+        
+        # The function should now support different output formats
+        # These are example formats, adjust based on the specific function
+        
+        # JSON format
+        try:
+            json_result = {function_name}(input_data, format="json")
+            # Check if it's valid JSON
+            try:
+                json_obj = json.loads(json_result) if isinstance(json_result, str) else json_result
+                self.assertIsNotNone(json_obj, "JSON result should be valid")
+            except json.JSONDecodeError:
+                self.fail("JSON result is not valid")
+        except TypeError as e:
+            self.fail(f"Function does not support JSON format: {{e}}")
+        
+        # CSV format
+        try:
+            csv_result = {function_name}(input_data, format="csv")
+            self.assertIsNotNone(csv_result, "CSV result should not be None")
+            if isinstance(csv_result, str):
+                self.assertIn(",", csv_result, "CSV result should contain commas")
+        except TypeError as e:
+            self.fail(f"Function does not support CSV format: {{e}}")
+        
+        # XML format
+        try:
+            xml_result = {function_name}(input_data, format="xml")
+            self.assertIsNotNone(xml_result, "XML result should not be None")
+            if isinstance(xml_result, str):
+                self.assertIn("<", xml_result, "XML result should contain tags")
+                self.assertIn(">", xml_result, "XML result should contain tags")
+        except TypeError as e:
+            self.fail(f"Function does not support XML format: {{e}}")
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+        else:
+            # Generic functionality expansion test
+            return f"""
+import unittest
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from solution import {function_name}
+
+class ExpandedFunctionalityTest(unittest.TestCase):
+    def test_expanded_functionality(self):
+        # Test for {expansion}
+        # This is a placeholder test that needs to be customized for the specific expansion
+        
+        # Basic test to verify the function exists
+        input_data = [1, 2, 3]
+        result = {function_name}(input_data)
+        self.assertIsNotNone(result, "Function should return a result")
+        
+        # You need to add specific tests for the expanded functionality
+        
+if __name__ == '__main__':
+    unittest.main()
+"""
+    
+    def _calculate_adaptation_vector(self, solution: str, result: EvaluationResult, feedback: Feedback) -> List[float]:
+        """
+        Calculate an adaptation vector based on the solution, result, and feedback.
+        
+        The adaptation vector encodes how the problem should evolve in future iterations,
+        capturing dimensions like difficulty, bug type emphasis, and feedback focus.
+        
+        Args:
+            solution: The current solution
+            result: The evaluation results
+            feedback: The feedback provided
+            
+        Returns:
+            An adaptation vector (list of floats)
+        """
+        # Initialize adaptation vector with zeros
+        # Dimensions:
+        # [0] - difficulty adjustment
+        # [1] - syntax vs logical bug emphasis
+        # [2] - performance focus
+        # [3] - edge case focus
+        # [4] - requirement expansion
+        adaptation_vector = [0.0] * 5
+        
+        # Adjust difficulty based on score
+        if result.score > 0.95:
+            adaptation_vector[0] = 0.2  # Increase difficulty significantly
+        elif result.score > 0.8:
+            adaptation_vector[0] = 0.1  # Increase difficulty moderately
+        elif result.score > 0.6:
+            adaptation_vector[0] = 0.0  # Maintain current difficulty
+        elif result.score > 0.4:
+            adaptation_vector[0] = -0.1  # Decrease difficulty moderately
+        else:
+            adaptation_vector[0] = -0.2  # Decrease difficulty significantly
+        
+        # Adjust bug type emphasis based on error types
+        syntax_issues = sum(1 for issue in feedback.issues if issue.get("error_type") == "syntax")
+        logical_issues = sum(1 for issue in feedback.issues if issue.get("type") == "test_failure")
+        
+        if syntax_issues > logical_issues:
+            adaptation_vector[1] = -0.1  # Move toward more logical bugs
+        elif logical_issues > syntax_issues:
+            adaptation_vector[1] = 0.1  # Move toward more syntax bugs
+        
+        # Adjust performance focus based on execution time and metrics
+        if result.metrics and "execution_time" in result.metrics:
+            if result.metrics["execution_time"] > self.config.get("performance_threshold", 1.0):
+                adaptation_vector[2] = 0.2  # Increase performance focus
+            else:
+                adaptation_vector[2] = -0.1  # Decrease performance focus
+        
+        # Adjust edge case focus based on test failures
+        if result.test_results:
+            edge_case_failures = sum(1 for test_name, test_result in result.test_results.items()
+                                    if not test_result["passed"] and "edge" in test_name.lower())
+            if edge_case_failures > 0:
+                adaptation_vector[3] = 0.2  # Increase edge case focus
+            else:
+                adaptation_vector[3] = 0.0  # Maintain current edge case focus
+        
+        # Adjust requirement expansion based on current state
+        current_requirements = len(self.state.requirements)
+        if current_requirements < 3:
+            adaptation_vector[4] = 0.1  # Increase likelihood of adding requirements
+        elif current_requirements >= 5:
+            adaptation_vector[4] = -0.1  # Decrease likelihood of adding requirements
+        
+        return adaptation_vector
+
+
+class DefaultTestRunner:
+    """Default test runner for evaluating bug fixes."""
+    
+    def run_tests(self, solution_file: Path, test_files: List[Path], code_context: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Run tests against a solution file.
+        
+        Args:
+            solution_file: Path to the solution file
+            test_files: List of test file paths
+            code_context: Context information about the code
+            
+        Returns:
+            Dictionary of test results
+        """
+        # Initialize results
+        results = {
+            "all_passed": True,
+            "passed_tests": 0,
+            "total_tests": 0,
+            "tests": {},
+            "execution": {
+                "success": True,
+                "error": None,
+                "stdout": None,
+                "stderr": None
+            },
+            "execution_time": 0.0
+        }
+        
+        # Import the solution to check for syntax errors
+        try:
+            # Check if the solution file exists
+            if not solution_file.exists():
+                results["execution"]["success"] = False
+                results["execution"]["error"] = "Solution file not found"
+                results["all_passed"] = False
+                return results
+            
+            # Try to import the module to test for syntax errors
+            sys.path.insert(0, str(solution_file.parent))
+            import importlib.util
+            spec = importlib.util.spec_from_file_location("solution", solution_file)
+            solution_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(solution_module)
+            
+            # Check for required functions
+            if "required_functions" in code_context:
+                for func_name in code_context["required_functions"]:
+                    if not hasattr(solution_module, func_name):
+                        results["execution"]["success"] = False
+                        results["execution"]["error"] = f"Required function '{func_name}' not found"
+                        results["all_passed"] = False
+                        return results
+            
+        except Exception as e:
+            results["execution"]["success"] = False
+            results["execution"]["error"] = str(e)
+            results["all_passed"] = False
+            return results
+        
+        # Run each test file
+        for test_file in test_files:
+            # Skip if the test file doesn't exist
+            if not test_file.exists():
+                continue
+            
+            # Run the test file
+            import unittest
+            import io
+            from contextlib import redirect_stdout, redirect_stderr
+            
+            # Create a test loader and find tests in the file
+            loader = unittest.TestLoader()
+            try:
+                tests = loader.discover(str(test_file.parent), pattern=test_file.name)
+                
+                # Count the number of test cases
+                test_cases = 0
+                for suite in tests:
+                    for test_case in suite:
+                        test_cases += test_case.countTestCases()
+                
+                results["total_tests"] += test_cases
+                
+                # Run the tests
+                runner = unittest.TextTestRunner(verbosity=2)
+                
+                # Capture stdout and stderr
+                stdout_buffer = io.StringIO()
+                stderr_buffer = io.StringIO()
+                
+                with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
+                    test_result = runner.run(tests)
+                
+                stdout = stdout_buffer.getvalue()
+                stderr = stderr_buffer.getvalue()
+                
+                # Check if all tests passed
+                if not test_result.wasSuccessful():
+                    results["all_passed"] = False
+                
+                # Count passed tests
+                passed_tests = test_cases - len(test_result.failures) - len(test_result.errors)
+                results["passed_tests"] += passed_tests
+                
+                # Store individual test results
+                test_name = test_file.stem
+                results["tests"][test_name] = {
+                    "passed": test_result.wasSuccessful(),
+                    "failures": len(test_result.failures),
+                    "errors": len(test_result.errors),
+                    "skipped": len(test_result.skipped),
+                    "total": test_cases,
+                    "passed_count": passed_tests,
+                    "stdout": stdout,
+                    "stderr": stderr
+                }
+                
+                # Extract more detailed information about failures
+                for failure in test_result.failures:
+                    test_id = failure[0].id()
+                    failure_message = failure[1]
+                    
+                    # Extract expected and actual values if available
+                    import re
+                    expected_match = re.search(r'Expected\s*:(.+)', failure_message)
+                    actual_match = re.search(r'Actual\s*:(.+)', failure_message)
+                    
+                    expected = expected_match.group(1).strip() if expected_match else None
+                    actual = actual_match.group(1).strip() if actual_match else None
+                    
+                    if test_id not in results["tests"]:
+                        results["tests"][test_id] = {}
+                    
+                    results["tests"][test_id].update({
+                        "passed": False,
+                        "message": failure_message,
+                        "expected": expected,
+                        "actual": actual
+                    })
+                
+            except Exception as e:
+                # If the test file itself has errors
+                results["all_passed"] = False
+                results["tests"][test_file.stem] = {
+                    "passed": False,
+                    "error": str(e),
+                    "failures": 1,
+                    "errors": 1,
+                    "skipped": 0,
+                    "total": 1,
+                    "passed_count": 0
+                }
+                results["total_tests"] += 1
+        
+        return results
+
+
+class BugFixingTaskGenerator:
+    """Generator for bug fixing tasks."""
+    
+    def __init__(self, config: Dict[str, Any] = None):
+        """
+        Initialize the bug fixing task generator.
+        
+        Args:
+            config: Configuration options
+        """
+        self.config = config or {}
+        self.difficulty_levels = self.config.get(
+            "difficulty_levels", 
+            ["easy", "medium", "hard", "expert"]
+        )
+        self.bug_categories = self.config.get(
+            "bug_categories",
+            [
+                BugCategory.SYNTAX,
+                BugCategory.LOGICAL,
+                BugCategory.EDGE_CASE,
+                BugCategory.PERFORMANCE
+            ]
+        )
+        self.test_templates = self._load_test_templates()
+    
+    def generate_task(self, difficulty: str = None, bug_categories: List[str] = None) -> BugFixingTask:
+        """
+        Generate a new bug fixing task.
+        
+        Args:
+            difficulty: The difficulty level (easy, medium, hard, expert)
+            bug_categories: List of bug categories to include
+            
+        Returns:
+            A new bug fixing task
+        """
+        # Choose difficulty if not specified
+        if difficulty is None:
+            difficulty = random.choice(self.difficulty_levels)
+        
+        # Choose bug categories if not specified
+        if bug_categories is None:
+            num_categories = random.randint(1, 3)
+            bug_categories = random.sample(self.bug_categories, num_categories)
+        
+        # Generate a problem based on difficulty and bug categories
+        problem_state = self._generate_problem_state(difficulty, bug_categories)
+        
+        # Create config for the task
+        task_config = {
+            "difficulty": difficulty,
+            "bug_categories": bug_categories,
+            "convergence_criteria": {
+                "score_threshold": 0.95,
+                "min_iterations": 1,
+                "max_iterations": self.config.get("max_iterations", 5),
+                "score_delta_threshold": 0.05,
+                "consecutive_plateau_limit": 2
+            },
+            "score_weights": {
+                "test": 0.7,
+                "execution": 0.3
+            },
+            "performance_threshold": 1.0,
+            "complexity_threshold": 0.7
+        }
+        
+        # Create and return the task
+        return BugFixingTask(problem_state, task_config)
+    
+    def _generate_problem_state(self, difficulty: str, bug_categories: List[str]) -> ProblemState:
+        """
+        Generate a problem state for the given difficulty and bug categories.
+        
+        Args:
+            difficulty: The difficulty level
+            bug_categories: List of bug categories
+            
+        Returns:
+            A problem state for the task
+        """
+        # Choose a template based on difficulty and bug categories
+        template = self._choose_template(difficulty, bug_categories)
+        
+        # Create a copy of the template
+        problem_state = copy.deepcopy(template)
+        
+        # Generate a unique ID
+        problem_state.problem_id = str(uuid.uuid4())
+        
+        # Initialize evolution stage and adaptation vector
+        problem_state.evolution_stage = 0
+        problem_state.adaptation_vector = [0.0] * 5
+        
+        # Adjust difficulty value based on level
+        difficulty_values = {
+            "easy": 0.25,
+            "medium": 0.5,
+            "hard": 0.75,
+            "expert": 0.9
+        }
+        problem_state.difficulty = difficulty_values.get(difficulty, 0.5)
+        
+        # Insert bugs based on categories
+        for category in bug_categories:
+            self._insert_bug(problem_state, category)
+        
+        # Update description to reflect the current state
+        problem_state.description = self._generate_description(problem_state)
+        
+        return problem_state
+    
+    def _choose_template(self, difficulty: str, bug_categories: List[str]) -> ProblemState:
+        """
+        Choose a template that matches the difficulty and bug categories.
+        
+        Args:
+            difficulty: The difficulty level
+            bug_categories: List of bug categories
+            
+        Returns:
+            A template problem state
+        """
+        # In a real implementation, this would load from a database of templates
+        # For now, we'll generate a simple template
+        
+        # Generate code context with a sample function
+        code = self._generate_template_code(difficulty, bug_categories)
+        tests = self._generate_template_tests(code)
+        
+        # Create a basic problem state
+        return ProblemState(
+            problem_id="template",
+            description="Fix the bugs in the given code.",
+            code_context={
+                "code": code,
+                "tests": tests,
+                "bug_count": 0,
+                "bug_categories": []
+            },
+            requirements=[
+                {
+                    "type": "functional",
+                    "description": "The code should pass all the provided tests.",
+                    "difficulty": 0.3
+                }
+            ],
+            difficulty=0.5,  # Will be overridden
+            evolution_stage=0,
+            adaptation_vector=[0.0] * 5
+        )
+    
+    def _generate_template_code(self, difficulty: str, bug_categories: List[str]) -> str:
+        """
+        Generate template code based on difficulty and bug categories.
+        
+        Args:
+            difficulty: The difficulty level
+            bug_categories: List of bug categories
+            
+        Returns:
+            Template code
+        """
+        # For demonstration, we'll use a few predefined templates
+        templates = {
+            "easy": """
+def calculate_sum(numbers):
+    \"\"\"Calculate the sum of a list of numbers.\"\"\"
+    total = 0
+    for num in numbers:
+        total += num
+    return total
+
+def calculate_average(numbers):
+    \"\"\"Calculate the average of a list of numbers.\"\"\"
+    if not numbers:
+        return 0
+    return calculate_sum(numbers) / len(numbers)
+""",
+            "medium": """
+def find_most_frequent(items):
+    \"\"\"Find the most frequently occurring item in
