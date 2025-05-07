@@ -3512,3 +3512,475 @@ if __name__ == '__main__':
                         break
         
         elif mod_type == "ineff
+# recursive_swe_bench/task_generators/bug_fixing.py (finalized)
+
+        elif mod_type == "inefficient_data_structure":
+            # Find indentation of the function
+            for i in range(start_idx + 1, end_idx + 1):
+                if lines[i].strip():
+                    indent = len(lines[i]) - len(lines[i].lstrip())
+                    break
+            else:
+                indent = 4
+            
+            # Find a suitable place to add inefficient data structure usage
+            for i in range(start_idx + 1, end_idx + 1):
+                if "def " not in lines[i] and lines[i].strip():
+                    # Add inefficient data structure usage after this line
+                    indent_str = ' ' * indent
+                    
+                    # Add inefficient code
+                    lines.insert(i + 1, f"{indent_str}# Inefficient data structure usage")
+                    lines.insert(i + 2, f"{indent_str}results = []")
+                    lines.insert(i + 3, f"{indent_str}for i in range(1000):  # Unnecessarily large range")
+                    lines.insert(i + 4, f"{indent_str}    # Using list instead of set for lookups")
+                    lines.insert(i + 5, f"{indent_str}    if i % 10 in results:  # O(n) lookup instead of O(1)")
+                    lines.insert(i + 6, f"{indent_str}        results.append(i)  # Unnecessary storage")
+                    
+                    # Update indices
+                    end_idx += 6
+                    break
+        
+        elif mod_type == "redundant_computation":
+            # Find indentation of the function
+            for i in range(start_idx + 1, end_idx + 1):
+                if lines[i].strip():
+                    indent = len(lines[i]) - len(lines[i].lstrip())
+                    break
+            else:
+                indent = 4
+            
+            # Find a suitable place to add redundant computation
+            for i in range(start_idx + 1, end_idx + 1):
+                if "for " in lines[i] or "while " in lines[i]:
+                    # Add redundant computation inside the loop
+                    inner_indent = len(lines[i]) - len(lines[i].lstrip()) + 4
+                    inner_indent_str = ' ' * inner_indent
+                    
+                    # Add redundant computation
+                    lines.insert(i + 1, f"{inner_indent_str}# Redundant computation in each iteration")
+                    lines.insert(i + 2, f"{inner_indent_str}temp_sum = 0")
+                    lines.insert(i + 3, f"{inner_indent_str}for j in range(100):  # Unnecessary nested computation")
+                    lines.insert(i + 4, f"{inner_indent_str}    temp_sum += j")
+                    
+                    # Update indices
+                    end_idx += 4
+                    break
+        
+        # Update the code
+        problem_state.code_context["code"] = '\n'.join(lines)
+        
+        # Add information about the bug
+        if "bugs" not in problem_state.code_context:
+            problem_state.code_context["bugs"] = []
+        
+        problem_state.code_context["bugs"].append({
+            "type": BugCategory.PERFORMANCE,
+            "line": start_idx + 1,
+            "description": f"Performance issue introduced in function '{func_name}'"
+        })
+    
+    def _insert_edge_case_bug(self, problem_state: ProblemState) -> None:
+        """
+        Insert an edge case bug into the problem state.
+        
+        Args:
+            problem_state: The problem state to modify
+        """
+        code = problem_state.code_context["code"]
+        lines = code.split('\n')
+        if not lines:
+            return
+        
+        # Find functions in the code
+        functions = []
+        current_func = None
+        func_start = None
+        for i, line in enumerate(lines):
+            if line.strip().startswith("def "):
+                if current_func:
+                    functions.append((func_start, i - 1, current_func))
+                current_func = line.strip()[4:].split("(")[0]
+                func_start = i
+            elif i == len(lines) - 1 and current_func:
+                functions.append((func_start, i, current_func))
+        
+        if not functions:
+            return
+        
+        # Choose a function to modify
+        start_idx, end_idx, func_name = random.choice(functions)
+        
+        # Choose a modification type
+        mod_type = random.choice([
+            "remove_boundary_check",
+            "missing_edge_case",
+            "type_assumption"
+        ])
+        
+        if mod_type == "remove_boundary_check":
+            # Find boundary checks (if statements with conditions that check boundaries)
+            boundary_checks = []
+            for i in range(start_idx + 1, end_idx + 1):
+                if (re.search(r'if\s+.*(len|empty|<=|>=|<|>|==|!=)', lines[i]) and 
+                    (("if not " in lines[i]) or ("if len(" in lines[i]) or 
+                     ("if " in lines[i] and " == 0" in lines[i]) or
+                     ("if " in lines[i] and " == []" in lines[i]) or
+                     ("if " in lines[i] and " == ''" in lines[i]) or
+                     ("if " in lines[i] and " is None" in lines[i]))):
+                    boundary_checks.append(i)
+            
+            if boundary_checks:
+                # Choose a boundary check to remove
+                idx = random.choice(boundary_checks)
+                
+                # Comment out the boundary check
+                lines[idx] = f"# {lines[idx]}  # Boundary check removed"
+                
+                # Comment out the body of the if statement
+                i = idx + 1
+                while i <= end_idx and (not lines[i].strip() or len(lines[i]) - len(lines[i].lstrip()) > len(lines[idx]) - len(lines[idx].lstrip())):
+                    lines[i] = f"# {lines[i]}"
+                    i += 1
+            else:
+                # If no boundary check found, add code that assumes a non-empty input
+                # Find the first non-docstring line in the function
+                for i in range(start_idx + 1, end_idx + 1):
+                    if lines[i].strip() and not (lines[i].strip().startswith('"""') or lines[i].strip().startswith("'''")):
+                        indent = len(lines[i]) - len(lines[i].lstrip())
+                        indent_str = ' ' * indent
+                        
+                        # Add code that assumes non-empty input
+                        lines.insert(i, f"{indent_str}# Missing check for empty input")
+                        lines.insert(i + 1, f"{indent_str}first_item = items[0]  # Will fail on empty input")
+                        
+                        # Update indices
+                        end_idx += 2
+                        break
+        
+        elif mod_type == "missing_edge_case":
+            # Find a suitable place to insert the bug
+            for i in range(start_idx + 1, end_idx + 1):
+                if ("/" in lines[i] or 
+                    "if " in lines[i] and "==" in lines[i] or 
+                    "if " in lines[i] and "!=" in lines[i]):
+                    
+                    if "/" in lines[i] and not re.search(r'if\s+.*!=\s*0', lines[i-1]):
+                        # Add code that doesn't check for zero division
+                        indent = len(lines[i]) - len(lines[i].lstrip())
+                        indent_str = ' ' * indent
+                        
+                        # Extract the denominator
+                        match = re.search(r'/\s*(\w+)', lines[i])
+                        if match:
+                            denominator = match.group(1)
+                            
+                            # Comment out any existing check
+                            j = i - 1
+                            while j >= start_idx and len(lines[j]) - len(lines[j].lstrip()) >= indent:
+                                if f"if {denominator}" in lines[j] and "== 0" in lines[j]:
+                                    lines[j] = f"# {lines[j]}  # Zero division check removed"
+                                j -= 1
+                            
+                            # Add a comment about the missing check
+                            lines.insert(i, f"{indent_str}# Missing check for zero division")
+                            
+                            # Update indices
+                            end_idx += 1
+                            break
+                    
+                    elif ("==" in lines[i] or "!=" in lines[i]) and "None" not in lines[i]:
+                        # Comment out edge case check
+                        lines[i] = f"# {lines[i]}  # Edge case check removed"
+                        break
+            else:
+                # If no suitable place found, add code that doesn't handle an edge case
+                # Find the first non-docstring line in the function
+                for i in range(start_idx + 1, end_idx + 1):
+                    if lines[i].strip() and not (lines[i].strip().startswith('"""') or lines[i].strip().startswith("'''")):
+                        indent = len(lines[i]) - len(lines[i].lstrip())
+                        indent_str = ' ' * indent
+                        
+                        # Add code that doesn't handle an edge case
+                        lines.insert(i, f"{indent_str}# Missing handling for edge cases")
+                        lines.insert(i + 1, f"{indent_str}# This function doesn't handle special cases properly")
+                        
+                        # Update indices
+                        end_idx += 2
+                        break
+        
+        elif mod_type == "type_assumption":
+            # Find a suitable place to insert a type assumption bug
+            for i in range(start_idx + 1, end_idx + 1):
+                if re.search(r'for\s+\w+\s+in\s+\w+', lines[i]) or "=" in lines[i] and "[" in lines[i]:
+                    # Extract the variable name
+                    var_match = re.search(r'for\s+\w+\s+in\s+(\w+)', lines[i])
+                    if not var_match:
+                        var_match = re.search(r'(\w+)\s*=', lines[i])
+                    
+                    if var_match:
+                        var_name = var_match.group(1)
+                        indent = len(lines[i]) - len(lines[i].lstrip())
+                        indent_str = ' ' * indent
+                        
+                        # Add code that assumes a specific type
+                        lines.insert(i + 1, f"{indent_str}# Type assumption: {var_name} is assumed to be a list")
+                        lines.insert(i + 2, f"{indent_str}if len({var_name}) > 0:  # Will fail if {var_name} doesn't support len()")
+                        lines.insert(i + 3, f"{indent_str}    first = {var_name}[0]  # Will fail if {var_name} is not subscriptable")
+                        
+                        # Update indices
+                        end_idx += 3
+                        break
+            else:
+                # If no suitable place found, add code at the beginning of the function
+                for i in range(start_idx + 1, end_idx + 1):
+                    if lines[i].strip() and not (lines[i].strip().startswith('"""') or lines[i].strip().startswith("'''")):
+                        indent = len(lines[i]) - len(lines[i].lstrip())
+                        indent_str = ' ' * indent
+                        
+                        # Extract parameter name
+                        param_match = re.search(r'def\s+\w+\s*\(\s*(\w+)', lines[start_idx])
+                        param_name = param_match.group(1) if param_match else "input_data"
+                        
+                        # Add code that assumes a specific type
+                        lines.insert(i, f"{indent_str}# Type assumption: {param_name} is assumed to be a specific type")
+                        lines.insert(i + 1, f"{indent_str}{param_name}_str = str({param_name})  # Will fail if {param_name} can't be converted to string")
+                        
+                        # Update indices
+                        end_idx += 2
+                        break
+        
+        # Update the code
+        problem_state.code_context["code"] = '\n'.join(lines)
+        
+        # Add information about the bug
+        if "bugs" not in problem_state.code_context:
+            problem_state.code_context["bugs"] = []
+        
+        problem_state.code_context["bugs"].append({
+            "type": BugCategory.EDGE_CASE,
+            "line": start_idx + 1,
+            "description": f"Edge case bug introduced in function '{func_name}'"
+        })
+    
+    def _generate_description(self, problem_state: ProblemState) -> str:
+        """
+        Generate a description for the current problem state.
+        
+        Args:
+            problem_state: The problem state
+            
+        Returns:
+            A descriptive prompt for the problem
+        """
+        # Base description
+        bug_count = problem_state.code_context.get("bug_count", 0)
+        plural = "bugs" if bug_count != 1 else "bug"
+        
+        base_desc = (
+            f"Fix the {plural} in the code below. "
+            f"There {'are' if bug_count != 1 else 'is'} {bug_count} {plural} to find and fix."
+        )
+        
+        # Add information about bug categories
+        if "bug_categories" in problem_state.code_context:
+            categories = problem_state.code_context["bug_categories"]
+            if categories:
+                category_desc = ", ".join(categories)
+                base_desc += f"\n\nThe code contains the following types of issues: {category_desc}."
+        
+        # Add requirements
+        if problem_state.requirements:
+            base_desc += "\n\nRequirements:"
+            for i, req in enumerate(problem_state.requirements):
+                base_desc += f"\n{i+1}. {req['description']}"
+        
+        # Add difficulty level
+        difficulty_desc = "easy"
+        if problem_state.difficulty > 0.3 and problem_state.difficulty <= 0.6:
+            difficulty_desc = "moderate"
+        elif problem_state.difficulty > 0.6 and problem_state.difficulty <= 0.8:
+            difficulty_desc = "challenging"
+        elif problem_state.difficulty > 0.8:
+            difficulty_desc = "very challenging"
+        
+        base_desc += f"\n\nThis is a {difficulty_desc} bug fixing task."
+        
+        return base_desc
+
+
+# Default implementation of TestRunner for when no custom runner is provided
+class DefaultTestRunner:
+    """
+    Default test runner for evaluating solutions.
+    
+    This class runs tests against a solution file and collects the results.
+    """
+    
+    def run_tests(
+        self, 
+        solution_file: Path, 
+        test_files: List[Path],
+        code_context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Run tests against a solution file.
+        
+        Args:
+            solution_file: Path to the solution file
+            test_files: List of test file paths
+            code_context: Additional context about the code
+            
+        Returns:
+            Dictionary containing test results
+        """
+        # Initialize results dictionary
+        results = {
+            "all_passed": True,
+            "passed_tests": 0,
+            "total_tests": 0,
+            "tests": {},
+            "execution": {
+                "success": True,
+                "error": None,
+                "stdout": "",
+                "stderr": ""
+            },
+            "execution_time": 0.0
+        }
+        
+        # Check if solution file exists
+        if not solution_file.exists():
+            results["execution"]["success"] = False
+            results["execution"]["error"] = f"Solution file not found: {solution_file}"
+            results["all_passed"] = False
+            return results
+        
+        # Try to import the solution module
+        try:
+            start_time = time.time()
+            
+            # Add solution directory to path
+            sys.path.insert(0, str(solution_file.parent))
+            
+            # Import the solution module
+            spec = importlib.util.spec_from_file_location(
+                "solution", solution_file)
+            solution_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(solution_module)
+            
+            # Remove the solution directory from path
+            sys.path.pop(0)
+            
+            # Record execution time
+            end_time = time.time()
+            results["execution_time"] = end_time - start_time
+            
+        except Exception as e:
+            results["execution"]["success"] = False
+            results["execution"]["error"] = str(e)
+            results["all_passed"] = False
+            return results
+        
+        # Run each test file
+        for test_file in test_files:
+            # Skip if the test file doesn't exist
+            if not test_file.exists():
+                continue
+            
+            try:
+                # Set up test loading
+                loader = unittest.TestLoader()
+                
+                # Add test directory to path
+                sys.path.insert(0, str(test_file.parent))
+                
+                # Capture stdout and stderr
+                stdout_buffer = io.StringIO()
+                stderr_buffer = io.StringIO()
+                
+                # Create a test suite from the test file
+                test_suite = loader.discover(
+                    str(test_file.parent),
+                    pattern=test_file.name
+                )
+                
+                # Count test cases
+                test_count = 0
+                for suite in test_suite:
+                    for test_case in suite:
+                        test_count += test_case.countTestCases()
+                
+                results["total_tests"] += test_count
+                
+                # Run the tests with captured output
+                with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
+                    test_runner = unittest.TextTestRunner(verbosity=2)
+                    test_result = test_runner.run(test_suite)
+                
+                # Get the captured output
+                stdout = stdout_buffer.getvalue()
+                stderr = stderr_buffer.getvalue()
+                
+                # Remove the test directory from path
+                sys.path.pop(0)
+                
+                # Check if all tests passed
+                if not test_result.wasSuccessful():
+                    results["all_passed"] = False
+                
+                # Count passed tests
+                passed_tests = test_count - len(test_result.failures) - len(test_result.errors)
+                results["passed_tests"] += passed_tests
+                
+                # Store individual test results
+                test_name = test_file.stem
+                results["tests"][test_name] = {
+                    "passed": test_result.wasSuccessful(),
+                    "failures": len(test_result.failures),
+                    "errors": len(test_result.errors),
+                    "skipped": len(test_result.skipped),
+                    "total": test_count,
+                    "passed_count": passed_tests,
+                    "stdout": stdout,
+                    "stderr": stderr
+                }
+                
+                # Store details for individual test failures
+                for failure in test_result.failures + test_result.errors:
+                    test_id = failure[0].id().split('.')[-1]
+                    failure_message = failure[1]
+                    
+                    # Try to extract expected and actual values
+                    expected_match = re.search(r'Expected\s*:(.+)', failure_message)
+                    actual_match = re.search(r'Actual\s*:(.+)', failure_message)
+                    
+                    expected = expected_match.group(1).strip() if expected_match else None
+                    actual = actual_match.group(1).strip() if actual_match else None
+                    
+                    if test_id not in results["tests"]:
+                        results["tests"][test_id] = {}
+                    
+                    results["tests"][test_id].update({
+                        "passed": False,
+                        "message": failure_message,
+                        "expected": expected,
+                        "actual": actual
+                    })
+                
+            except Exception as e:
+                # If there's an error in the test file itself
+                results["all_passed"] = False
+                test_name = test_file.stem
+                results["tests"][test_name] = {
+                    "passed": False,
+                    "error": str(e),
+                    "failures": 0,
+                    "errors": 1,
+                    "skipped": 0,
+                    "total": 1,
+                    "passed_count": 0
+                }
+                results["total_tests"] += 1
+        
+        return results
